@@ -1,57 +1,45 @@
-
+import io.restassured.response.Response;
+import jsongenerator.JsonGenerator;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.*;
 import tripDemo.model.Passenger;
 import tripDemo.model.Trip;
+
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+
 import static io.restassured.RestAssured.given;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class TripTest {
 
 
-
+    @Order(1)
     @Test
-    @Order(2)
-    public void createAnotherTrip() {
-        Trip trip = new Trip();
-        trip.setCompanyId(1L);
-        trip.setPlane("plane2");
-        trip.setTownFrom("Moscow");
-        trip.setTownTo("St. Petersburg");
-        trip.setTimeIn("2021-05-16T03:31:43");
-        trip.setTimeOut("2021-05-16T03:31:43");
+    public void createTrip() {
+        Trip trip = new Trip.Builder()
+                .withRandomMainInfo(1)
+                .withPassengers(new ArrayList<>() {{
+                    for (int i = 0; i < RandomUtils.nextInt(1, 3); i++) {
+                        add(new Passenger.Builder().withRandomCompletely().build());
+                    }
+                }}).build();
+        String body = JsonGenerator.toJsonString(trip);
 
-        List<Passenger> passengerList = new ArrayList<>();
-        Passenger passenger1 = new Passenger();
-        passenger1.setFirstName("Andrey");
-        passenger1.setMiddleName("Volkov");
-        passenger1.setLastName("Pupkin");
-
-        Passenger passenger2 = new Passenger();
-        passenger2.setFirstName("Andrey");
-        passenger2.setMiddleName("Volkov");
-        passenger2.setLastName("Pupkin");
-        passengerList.add(passenger1);
-        passengerList.add(passenger2);
-
-        trip.setPassengerList(passengerList);
-
-        given()
+        Response response = given()
                 .log().all(true)
                 .contentType("application/json")
                 .accept("application/json")
-                .body(trip)
+                .body(body)
                 .when()
                 .post("http://localhost:8080/trip/createTrip")
-                .body()
-                .as(Trip.class);
+                .thenReturn();
 
+        System.out.println(response.getBody().prettyPrint());
     }
 
     @Test
-    @Order(3)
+    @Order(2)
     public void getTrip() {
         Map<String, String> actual = given()
                 .log().all(true)
@@ -63,22 +51,18 @@ public class TripTest {
                 .statusCode(200)
                 .extract().body()
                 .jsonPath().getMap("", String.class, String.class);
-        Assertions.assertEquals(actual.get("townFrom"),"Moscow");
+        Assertions.assertEquals(actual.get("townFrom"), "Moscow");
 
-
-        // тут у меня подсветило equalTo("Moscow") в методе body()
-        // .body("townFrom", equalTo("Moscow"));
     }
 
     @Test
-    @Order(4)
+    @Order(3)
     public void putTrip() {
         Trip trip = new Trip();
         trip.setId(4L);
         trip.setCompanyId(1L);
         trip.setPlane("plane3");
         trip.setTownTo("Vladivostok");
-        //Вызов метода put должен вернуть объект Trip
         Trip tripResult = given()
                 .log().all(true)
                 .contentType("application/json")
@@ -87,16 +71,18 @@ public class TripTest {
                 .when()
                 .put("http://localhost:8080/trip/putTrip")
                 .as(Trip.class);
-        Assertions.assertEquals(tripResult.getId(),trip.getId());
-        Assertions.assertEquals(tripResult.getCompanyId(),trip.getCompanyId());
-        Assertions.assertEquals(tripResult.getPlane(),trip.getPlane());
-        Assertions.assertEquals(tripResult.getTownTo(),trip.getTownTo());
+        Assertions.assertEquals(tripResult.getId(), trip.getId());
+        Assertions.assertEquals(tripResult.getCompanyId(), trip.getCompanyId());
+        Assertions.assertEquals(tripResult.getPlane(), trip.getPlane());
+        Assertions.assertEquals(tripResult.getTownTo(), trip.getTownTo());
 
     }
+
     @Test
+    @Order(4)
     public void deleteTrip() {
         Trip trip = new Trip();
-          given()
+        given()
                 .log().all(true)
                 .contentType("application/json")
                 .accept("application/json")
