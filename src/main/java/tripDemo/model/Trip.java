@@ -1,7 +1,7 @@
 package tripDemo.model;
 
 import lombok.Data;
-import lombok.Setter;
+
 
 import java.util.ArrayList;
 import java.util.List;
