@@ -19,6 +19,11 @@ public class Passenger {
             passenger = new Passenger();
         }
 
+        public Builder withId(Long id) {
+            passenger.id = id;
+            return this;
+        }
+
         public Builder withRandomCompletely() {
             passenger.firstName = faker.address().firstName();
             passenger.middleName = faker.name().firstName();

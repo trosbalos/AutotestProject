@@ -1,102 +1,75 @@
+import config.ConfigQA;
+import dictionaries.IPathEnum;
+import dictionaries.TripPathEnum;
+import helper.ApiHelper;
 import io.restassured.response.Response;
 import jsongenerator.JsonGenerator;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.jupiter.api.*;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import tripDemo.model.Passenger;
 import tripDemo.model.Trip;
-
 import java.util.ArrayList;
 import java.util.Map;
 
-import static io.restassured.RestAssured.given;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
 public class TripTest {
 
+    private static Map<IPathEnum, String> serviceDataMap;
+    private static Trip createTrip, putTrip;
 
-    @Order(1)
-    @Test
-    public void createTrip() {
-        Trip trip = new Trip.Builder()
+
+
+    @BeforeClass
+    public static void init() {
+         serviceDataMap = ConfigQA.getInstance().getServiceDataMap();
+         createTrip = new Trip.Builder()
                 .withRandomMainInfo(1)
                 .withPassengers(new ArrayList<>() {{
                     for (int i = 0; i < RandomUtils.nextInt(1, 3); i++) {
                         add(new Passenger.Builder().withRandomCompletely().build());
                     }
                 }}).build();
-        String body = JsonGenerator.toJsonString(trip);
 
-        Response response = given()
-                .log().all(true)
-                .contentType("application/json")
-                .accept("application/json")
-                .body(body)
-                .when()
-                .post("http://localhost:8080/trip/createTrip")
-                .thenReturn();
+         putTrip = new Trip.Builder()
+                .withId(6L)
+                .withRandomMainInfo(1)
+                .withPassengers(new ArrayList<>() {{
+                    add(new Passenger.Builder()
+                            .withId(10L)
+                            .withRandomCompletely().build());
+                }}).build();
+    }
 
+    @Test
+    public void createTrip() {
+        String result = JsonGenerator.toJsonString(createTrip);
+        String path = serviceDataMap.get(TripPathEnum.CREATE_TRIP);
+        Response response = ApiHelper.post(path, result);
         System.out.println(response.getBody().prettyPrint());
     }
 
     @Test
-    @Order(2)
     public void getTrip() {
-        Map<String, String> actual = given()
-                .log().all(true)
-                .contentType("application/json")
-                .accept("application/json")
-                .when()
-                .get("http://localhost:8080/trip/getTrip/4")
-                .then()
-                .statusCode(200)
-                .extract().body()
-                .jsonPath().getMap("", String.class, String.class);
-        Assertions.assertEquals(actual.get("townFrom"), "Moscow");
-
+        String path = serviceDataMap.get(TripPathEnum.GET_TRIP);
+        Response response = ApiHelper.get(path, 6);
+        System.out.println(response.getBody().prettyPrint());
     }
 
     @Test
-    @Order(3)
     public void putTrip() {
-        Trip trip = new Trip();
-        trip.setId(4L);
-        trip.setCompanyId(1L);
-        trip.setPlane("plane3");
-        trip.setTownTo("Vladivostok");
-        Trip tripResult = given()
-                .log().all(true)
-                .contentType("application/json")
-                .accept("application/json")
-                .body(trip)
-                .when()
-                .put("http://localhost:8080/trip/putTrip")
-                .as(Trip.class);
-        Assertions.assertEquals(tripResult.getId(), trip.getId());
-        Assertions.assertEquals(tripResult.getCompanyId(), trip.getCompanyId());
-        Assertions.assertEquals(tripResult.getPlane(), trip.getPlane());
-        Assertions.assertEquals(tripResult.getTownTo(), trip.getTownTo());
-
+        String path = serviceDataMap.get(TripPathEnum.PUT_TRIP);
+        String result = JsonGenerator.toJsonString(putTrip);
+        Response response = ApiHelper.put(path, result);
+        System.out.println(response.getBody().prettyPrint());
     }
 
     @Test
-    @Order(4)
     public void deleteTrip() {
-        Trip trip = new Trip();
-        given()
-                .log().all(true)
-                .contentType("application/json")
-                .accept("application/json")
-                .body(trip)
-                .when()
-                .delete("http://localhost:8080/trip/deleteTrip/7");
-        given()
-                .log().all(true)
-                .contentType("application/json")
-                .accept("application/json")
-                .when()
-                .get("http://localhost:8080/trip/getTrip/7")
-                .then()
-                .assertThat()
-                .statusCode(500);
+        String path = serviceDataMap.get(TripPathEnum.DELETE_TRIP);
+        Response response = ApiHelper.delete(path, 6);
+        System.out.println(response.getBody().prettyPrint());
     }
 }
+
