@@ -10,6 +10,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -37,6 +38,7 @@ public class Trip {
 
         public Builder withPassengers(List<Passenger> passengerList) {
             trip.passengerList.addAll(passengerList);
+            Collections.sort(trip.passengerList);
             return this;
         }
 
