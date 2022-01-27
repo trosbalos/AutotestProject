@@ -4,11 +4,14 @@ import dictionaries.IPathEnum;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import repositories.PassengerRepository;
+import repositories.TripRepository;
 import steps.TripSteps;
 import tripDemo.model.Passenger;
 import tripDemo.model.Trip;
 import java.util.ArrayList;
 
+import java.util.Collections;
 import java.util.Map;
 
 
@@ -30,7 +33,6 @@ public class TripTest {
                 }}).build();
 
         putTrip = new Trip.Builder()
-                //Пока что нужно установить id существующей модели в базе
                 .withId(8L)
                 .withRandomMainInfo(1)
                 .withPassengers(new ArrayList<>() {{
@@ -44,6 +46,16 @@ public class TripTest {
     public void createTrip() {
         Trip responseTrip = TripSteps.sendPost(createTrip);
         new TripComparator(createTrip, responseTrip).compare();
+        TripRepository tripRepository = new TripRepository();
+        PassengerRepository passengerRepository = new PassengerRepository();
+        Trip tripFromBD = tripRepository.getById(responseTrip.getId());
+        for (Passenger passenger : responseTrip.getPassengerList()) {
+            Passenger passengerFormBD = passengerRepository.getById(passenger.getId());
+            tripFromBD.getPassengerList().add(passengerFormBD);
+        }
+        Collections.sort(tripFromBD.getPassengerList());
+        new TripComparator(createTrip, tripFromBD).compare();
+
     }
 
     @Test

@@ -5,7 +5,7 @@ import lombok.Data;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
 @Data
-public class Passenger implements Comparable<Passenger>{
+public class Passenger implements Comparable<Passenger> {
     private Long id;
     private String firstName;
     private String middleName;

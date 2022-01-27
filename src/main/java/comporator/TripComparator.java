@@ -1,14 +1,17 @@
 package comporator;
 
-import lombok.AllArgsConstructor;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import tripDemo.model.Passenger;
 import tripDemo.model.Trip;
 
-@AllArgsConstructor
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class TripComparator implements IComparator {
     private final Trip actual, expected;
+
+    public TripComparator(Trip actual, Trip expected) {
+        this.actual = actual;
+        this.expected = expected;
+    }
 
     public void compare() {
         assertThat(actual.getCompanyId()).isEqualTo(expected.getCompanyId());
@@ -26,10 +29,11 @@ public class TripComparator implements IComparator {
             assertThat(actualPassenger.getLastName()).isEqualTo(expectedPassenger.getLastName());
         }
     }
+
     public void compareTrip() {
         assertThat(actual).usingRecursiveComparison()
                 .ignoringFields("id", "passengerList.id")
-                .isEqualTo(expected);;
+                .isEqualTo(expected);
 
     }
 }

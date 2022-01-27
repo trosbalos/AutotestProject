@@ -46,6 +46,7 @@ public class Trip {
             trip.plane = plane;
             return this;
         }
+
         public Builder withId(Long id) {
             trip.id = id;
             return this;

@@ -5,8 +5,10 @@ public enum ServiceEnum {
 
     public IPathEnum[] getPathEnumList() {
         switch (this) {
-            case TRIP : return TripPathEnum.values();
-            default:throw new IllegalArgumentException();
+            case TRIP:
+                return TripPathEnum.values();
+            default:
+                throw new IllegalArgumentException();
         }
     }
 }
