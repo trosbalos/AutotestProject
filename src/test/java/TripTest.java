@@ -1,78 +1,77 @@
 import comporator.TripComparator;
-import config.ConfigQA;
-import dictionaries.IPathEnum;
+import comporator.TripDBComparator;
+
+import hibernate.TripEntity;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import repositories.PassengerRepository;
+
+import org.assertj.core.api.Assertions;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import repositories.TripRepository;
 import steps.TripSteps;
+import testDataProvider.TestDataProvider;
 import tripDemo.model.Passenger;
 import tripDemo.model.Trip;
 import java.util.ArrayList;
 
-import java.util.Collections;
-import java.util.Map;
 
 
+public class TripTest extends BaseTest {
 
-public class TripTest {
+    private Trip trip;
+    private TripEntity tripEntity;
 
-    private static Map<IPathEnum, String> serviceDataMap;
-    private static Trip createTrip, putTrip;
-
-    @BeforeClass
-    public static void init() {
-        serviceDataMap = ConfigQA.getInstance().getServiceDataMap();
-        createTrip = new Trip.Builder()
+    @BeforeMethod
+    public void init() {
+        trip = new Trip.Builder()
                 .withRandomMainInfo(1)
-                .withPassengers(new ArrayList<>() {{
+                .withPassengers(new ArrayList<Passenger>() {{
                     for (int i = 0; i < RandomUtils.nextInt(1, 3); i++) {
                         add(new Passenger.Builder().withRandomCompletely().build());
                     }
                 }}).build();
-
-        putTrip = new Trip.Builder()
-                .withId(8L)
-                .withRandomMainInfo(1)
-                .withPassengers(new ArrayList<>() {{
-                    add(new Passenger.Builder()
-                            .withId(10L)
-                            .withRandomCompletely().build());
-                }}).build();
     }
 
-    @Test
-    public void createTrip() {
-        Trip responseTrip = TripSteps.sendPost(createTrip);
-        new TripComparator(createTrip, responseTrip).compare();
-        TripRepository tripRepository = new TripRepository();
-        PassengerRepository passengerRepository = new PassengerRepository();
-        Trip tripFromBD = tripRepository.getById(responseTrip.getId());
-        for (Passenger passenger : responseTrip.getPassengerList()) {
-            Passenger passengerFormBD = passengerRepository.getById(passenger.getId());
-            tripFromBD.getPassengerList().add(passengerFormBD);
-        }
-        Collections.sort(tripFromBD.getPassengerList());
-        new TripComparator(createTrip, tripFromBD).compare();
-
+    @BeforeMethod(onlyForGroups = {"withExistTrip"})
+    public void prepareTrip() {
+        trip = TripSteps.createTrip(trip);
     }
 
-    @Test
+    @Test(groups = {"withAddedEntity"},dataProvider = "prepareTrips",dataProviderClass = TestDataProvider.class)
+    public void createTrip(String testNumber, Trip trip) {
+        System.out.println("test number = " + testNumber);
+        Trip responseTrip = TripSteps.sendPost(trip);
+        new TripComparator(responseTrip, trip).compare();
+        tripEntity = TripRepository.getInstance().getById(TripEntity.class, responseTrip.getId());
+        new TripDBComparator(responseTrip, tripEntity).compare();
+    }
+
+    @Test(groups = {"withExistTrip", "withAddedEntity"})
     public void getTrip() {
-        Trip responseTrip = TripSteps.sendGet(8);
-        new TripComparator(putTrip, responseTrip).compare();
+        Trip responseTrip = TripSteps.sendGet(trip.getId());
+        new TripComparator(trip, responseTrip).compare();
+        tripEntity = TripRepository.getInstance().getById(TripEntity.class, responseTrip.getId());
+        new TripDBComparator(responseTrip, tripEntity).compare();
     }
 
-    @Test
+    @Test(groups = {"withExistTrip", "withAddedEntity"})
     public void putTrip() {
-        Trip responseTrip = TripSteps.sendPut(putTrip);
-        new TripComparator(putTrip, responseTrip).compare();
+        trip.setPlane("newPlane");
+        Trip responseTrip = TripSteps.sendPut(trip);
+        new TripComparator(trip, responseTrip).compare();
+        tripEntity = TripRepository.getInstance().getById(TripEntity.class, responseTrip.getId());
+        new TripDBComparator(responseTrip, tripEntity).compare();
     }
-
-    @Test
+    @AfterMethod(onlyForGroups = {"withAddedEntity"})
+    public void deleteEntity() {
+        TripRepository.getInstance().delete(tripEntity);
+    }
+    @Test(groups = {"withExistTrip"})
     public void deleteTrip() {
-        Trip responseTrip = TripSteps.sendDelete(8);
-        new TripComparator(putTrip, responseTrip).compare();
+        Trip responseTrip = TripSteps.sendDelete(trip.getId());
+        new TripComparator(trip, responseTrip).compare();
+        tripEntity = TripRepository.getInstance().getById(TripEntity.class, responseTrip.getId());
+        Assertions.assertThat(tripEntity).isNull();
     }
 }

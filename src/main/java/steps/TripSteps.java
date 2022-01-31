@@ -4,9 +4,12 @@ import config.ConfigQA;
 import dictionaries.IPathEnum;
 import dictionaries.TripPathEnum;
 import helper.ApiHelper;
+import hibernate.TripEntity;
 import io.restassured.response.Response;
 import jsongenerator.JsonGenerator;
+import mapper.TripMapper;
 import org.assertj.core.api.Assertions;
+import repositories.TripRepository;
 import tripDemo.model.Trip;
 
 import java.util.Collections;
@@ -45,5 +48,11 @@ public class TripSteps {
         Trip responseTrip = response.as(Trip.class);
         Collections.sort(responseTrip.getPassengerList());
         return responseTrip;
+    }
+    public static Trip createTrip(Trip trip) {
+        TripMapper tripMapper = TripMapper.INSTANCE;
+        TripEntity tripEntity = tripMapper.toEntity(trip);
+        tripEntity = TripRepository.getInstance().create(tripEntity);
+        return tripMapper.toDto(tripEntity);
     }
 }
