@@ -64,11 +64,27 @@ public class Trip {
             trip.townTo = faker.address().city();
             trip.timeOut = LocalDateTime.now().plusDays(5).truncatedTo(ChronoUnit.SECONDS);
             trip.timeIn = LocalDateTime.now().plusDays(5).plusHours(5).truncatedTo(ChronoUnit.SECONDS);
+            System.out.println("Отработал билдер withRandomMainInfo" + trip.toString() );
             return this;
         }
 
         public Trip build() {
+            System.out.println("Отработал билдер build" + trip.toString() );
             return trip;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Trip{" +
+                "passengerList=" + passengerList +
+                ", id=" + id +
+                ", companyId=" + companyId +
+                ", plane='" + plane + '\'' +
+                ", townFrom='" + townFrom + '\'' +
+                ", townTo='" + townTo + '\'' +
+                ", timeOut=" + timeOut +
+                ", timeIn=" + timeIn +
+                '}';
     }
 }

@@ -1,6 +1,7 @@
 package comporator;
 
 import hibernate.TripEntity;
+import io.qameta.allure.Step;
 import mapper.TripMapper;
 import org.assertj.core.api.Assertions;
 import tripDemo.model.Trip;
@@ -14,6 +15,7 @@ public class TripDBComparator implements IComparator {
     private final Trip expected, actual;
     private final TripEntity tripEntity;
 
+
     public TripDBComparator(Trip expected, TripEntity tripEntity) {
         this.expected = expected;
         this.tripEntity = tripEntity;
@@ -23,8 +25,10 @@ public class TripDBComparator implements IComparator {
 
 
     @Override
+    @Step("Проверка информации в базе данный")
     public void compare() {
-        assertThat(actual).usingRecursiveComparison()
+        assertThat(actual)
+                .usingRecursiveComparison()
                 .isEqualTo(expected);
         checkSpecificFields();
     }

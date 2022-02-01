@@ -5,32 +5,41 @@ import dictionaries.ServiceEnum;
 import org.hibernate.Session;
 
 public class BaseRepository {
-    private ServiceEnum serviceEnum;
+    private final ServiceEnum serviceEnum;
 
     protected BaseRepository(ServiceEnum serviceEnum) {
         this.serviceEnum = serviceEnum;
     }
 
-    protected Session getSession() {
+    protected synchronized Session getSession() {
         return BaseConnection.getInstance().getSession(serviceEnum);
     }
 
-    protected void closeSession() {
+    protected synchronized void closeSession() {
         BaseConnection.getInstance().closeConnection(serviceEnum);
     }
 
-    public <T> T getById(Class<T> tClass, long id) {
+    public synchronized <T> T getById(Class<T> tClass, long id) {
         Session session = getSession();
         T object = session.get(tClass, id);
         closeSession();
         return object;
     }
-    public <T> T create(T object) {
+
+    public synchronized <T> T create(T object) {
         Session session = getSession();
         session.beginTransaction();
         session.save(object);
         session.getTransaction().commit();
         closeSession();
         return object;
+    }
+
+    public synchronized <T> void delete(T object) {
+        Session session = getSession();
+        session.beginTransaction();
+        session.remove(object);
+        session.getTransaction().commit();
+        closeSession();
     }
 }

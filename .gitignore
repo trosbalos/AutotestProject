@@ -3,6 +3,7 @@
 .idea/*
 *.iml
 *.class
+*.json
 *.log
 *.ctxt
 .mtj.tmp/

@@ -18,8 +18,8 @@ public class TestDataProvider {
                                 add(new Passenger.Builder().withRandomCompletely().build());
                             }
                         }}).build()},
-                {"2", new Trip.Builder().withRandomMainInfo(1)
-                        .withPlane("test plane")
+                {"2", new Trip.Builder()
+                        .withRandomMainInfo(1)
                         .withPassengers(new ArrayList<Passenger>() {{
                             for (int i = 0; i < RandomUtils.nextInt(1, 3); i++) {
                                 add(new Passenger.Builder().withRandomCompletely().build());

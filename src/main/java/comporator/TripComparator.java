@@ -1,5 +1,6 @@
 package comporator;
 
+import io.qameta.allure.Step;
 import tripDemo.model.Passenger;
 import tripDemo.model.Trip;
 
@@ -13,6 +14,7 @@ public class TripComparator implements IComparator {
         this.expected = expected;
     }
 
+    @Step("Проверка полученного ответ с запросом к сервису")
     public void compare() {
         assertThat(actual.getCompanyId()).isEqualTo(expected.getCompanyId());
         assertThat(actual.getPlane()).isEqualTo(expected.getPlane());

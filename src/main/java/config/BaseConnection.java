@@ -1,12 +1,10 @@
 package config;
 
 
-
 import dictionaries.ServiceEnum;
 import hibernate.CompanyEntity;
 import hibernate.PassengerEntity;
 import hibernate.TripEntity;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -14,29 +12,27 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.service.ServiceRegistry;
 
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BaseConnection {
+    private static BaseConnection instance;
     private final Map<ServiceEnum, Session> connectionMap;
     private final ConfigQA configQA;
-
-    private static BaseConnection instance;
 
     private BaseConnection() {
         connectionMap = new ConcurrentHashMap<>();
         configQA = ConfigQA.getInstance();
     }
 
-    public static BaseConnection getInstance() {
+    public synchronized static BaseConnection getInstance() {
         if (instance == null) {
             instance = new BaseConnection();
         }
         return instance;
     }
 
-    public Session getSession(ServiceEnum serviceEnum) {
+    public synchronized Session getSession(ServiceEnum serviceEnum) {
         if (Objects.nonNull(serviceEnum)) {
             return connectionMap.computeIfAbsent(serviceEnum,
                     a -> {
@@ -52,7 +48,7 @@ public class BaseConnection {
         throw new IllegalArgumentException();
     }
 
-    public void closeConnection(ServiceEnum serviceEnum) {
+    public synchronized void closeConnection(ServiceEnum serviceEnum) {
         connectionMap.computeIfPresent(serviceEnum,
                 (a, b) -> {
                     connectionMap.remove(a).close();
